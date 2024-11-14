@@ -32,11 +32,15 @@ module.exports = ( sequelize, DataTypes ) => {
 
     //db methods
     Book.addBook = async(title, author) => {
+        const query = `INSERT INTO books (title, author) VALUES (:title, :author)`;
+        const replacements = {
+            title : title,
+            author : author
+        }
+
         try{
-            const book = await Book.create({
-                title,
-                author
-            });
+            
+            const book = await sequelize.query(query, { replacements });
 
             return book;
             
