@@ -13,7 +13,7 @@ module.exports = ( sequelize, DataTypes ) => {
         email : {
             type : DataTypes.STRING,
             allowNull : false,
-            unique : true
+            //unique : true
         },
     
         password : {
@@ -31,6 +31,37 @@ module.exports = ( sequelize, DataTypes ) => {
             allowNull : true
         }
     });
+
+    User.checkDuplicateUser = async(email) => {
+        const query = `SELECT * FROM users WHERE email = :email`;
+        const replacements = { email };
+        try{
+            const [duplicateUser] = await sequelize.query(query, { replacements });
+            return duplicateUser;
+        } catch(error){
+            throw new Error("Error in checking duplicate users. Error: ", error);
+        }
+    }
+
+    User.registerUser = async(name, email, password, role) => {
+        const query = `INSERT INTO users (name, email, password, role) VALUES (:name, :email, :password, :role)`;
+        const replacements = {
+            name : name,
+            email : email,
+            password : password,
+            role : role,
+            // createdAt: new Date(),
+            // updatedAt : new Date()
+        };
+
+        try{
+            const [newUser] = await sequelize.query(query, { replacements });
+            return newUser;
+
+        } catch(error){
+            throw new Error("Error in registering new user. Error: ", error.message);
+        }
+    }
         
     User.associate = (models) => {
         User.hasMany(models.Book, {
