@@ -118,6 +118,77 @@ module.exports = ( sequelize, DataTypes ) => {
             throw new Error("Error in logging out: ", error);
         }
     }
+
+    User.usersList_all = async() => {
+        const query = `SELECT name, email, role FROM users`;
+
+        try{
+            const [ users ] = await sequelize.query(query);
+            return users;
+
+        } catch(error){
+            throw new Error("Error in fetching users: ", error);
+        }
+    }
+
+    User.usersList_user = async() => {
+        const query = `SELECT name, email, role FROM users WHERE role = 'User'`;
+
+        try{
+            const [ users ] = await sequelize.query(query);
+            return users;
+
+        } catch(error){
+            throw new Error("Error in fetching users: ", error);
+        }
+    }
+
+    User.usersList_admin = async() => {
+        const query = `SELECT name, email, role FROM users WHERE role = 'Admin'`;
+
+        try{
+            const [ users ] = await sequelize.query(query);
+            return users;
+
+        } catch(error){
+            throw new Error("Error in fetching users: ", error);
+        }
+    }
+
+    User.updateDetails = async(user_id, updates) => {
+        const setClause = Object.keys(updates)
+            .map((key) => `${key} = :${key}`)
+            .join(", ");
+
+        const replacements = { ...updates, user_id };
+        const query = `UPDATE users SET ${setClause} WHERE user_id = :user_id`;
+
+        try{
+            const [updated] = await sequelize.query(
+                query,
+                {replacements}
+            );
+
+            return updated;
+
+        } catch(error){
+            throw new Error("Error in updating user details: ", error);
+        }
+    }
+
+    User.remove = async(user_id) => {
+        const query = `DELETE FROM users WHERE user_id = :user_id`;
+        const replacements = {
+            user_id : user_id
+        };
+
+        try{
+            const [removed] = await sequelize.query(query, { replacements });
+            return removed;
+        } catch(error){
+            throw new Error("Error in deleting user: ", error);
+        }
+    }
         
     User.associate = (models) => {
         User.hasMany(models.Book, {
