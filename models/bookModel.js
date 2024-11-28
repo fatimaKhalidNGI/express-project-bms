@@ -1,3 +1,5 @@
+const { QueryTypes } = require("sequelize");
+
 module.exports = ( sequelize, DataTypes ) => {
     const Book = sequelize.define('Book', {
         book_id : {
@@ -49,11 +51,25 @@ module.exports = ( sequelize, DataTypes ) => {
         }
     }
 
-    Book.listBooks = async() => {
-        const query = `SELECT title, author FROM books WHERE dateBorrowed IS NULL`;
+    Book.listBooks = async(page, limit) => {
+        const offset = (page - 1) * limit;
+        const query = `SELECT title, author FROM books WHERE dateBorrowed IS NULL ORDER BY title LIMIT :limit OFFSET :offset`;
+        const countQuery = `SELECT COUNT(*) AS total FROM books WHERE dateBorrowed IS NULL`;
+
+        const values = { limit, offset };
+
         try{
-            const [booksList] = await sequelize.query(query);
-            return booksList;
+            const booksList = await sequelize.query(query, {
+                replacements : values,
+                type : QueryTypes.SELECT
+            });
+
+            const totalCountResult = await sequelize.query(countQuery, {
+                type : QueryTypes.SELECT
+            });
+            const total = totalCountResult[0].total;
+
+            return {booksList, total};
         } catch(error){
             throw new Error("Error in gwtting books list. Error: ", error);
         }
@@ -99,37 +115,61 @@ module.exports = ( sequelize, DataTypes ) => {
         }
     }
 
-    Book.searchByAuthor = async(searchTerm) => {
-        const query = `SELECT title, author FROM books WHERE author LIKE :searchTerm AND dateBorrowed IS NULL`;
-        
+    Book.searchByAuthor = async(searchTerm, page, limit) => {
+        const offset = (page - 1) * limit;
+
+        const query = `SELECT title, author FROM books WHERE author LIKE :searchTerm AND dateBorrowed IS NULL ORDER BY title LIMIT :limit OFFSET :offset`;
+        const countQuery = `SELECT COUNT(*) AS total FROM books WHERE author LIKE :searchTerm AND dateBorrowed IS NULL`;
+
         const values = {
-            searchTerm : `%${searchTerm}%`
-        }
+            searchTerm : `%${searchTerm}%`,
+            limit,
+            offset
+        };
         
         try{
-            const [results] = await sequelize.query(query, {
-                replacements : values
+            const results = await sequelize.query(query, {
+                replacements : values,
+                type : QueryTypes.SELECT
             });
 
-            return results;
+            const totalCountResult = await sequelize.query(countQuery, {
+                replacements : values,
+                type : QueryTypes.SELECT
+            });
+            const total = totalCountResult[0].total;
+
+            return { results, total };
         } catch(error){
             throw new Error("Error in searching by author. Error: ", error);
         }
     }
 
-    Book.searchByTitle = async(searchTerm) => {
-        const query = `SELECT title, author FROM books WHERE title LIKE :searchTerm AND dateBorrowed IS NULL`;
-        
+    Book.searchByTitle = async(searchTerm, page, limit) => {
+        const offset = (page - 1) * limit;
+
+        const query = `SELECT title, author FROM books WHERE title LIKE :searchTerm AND dateBorrowed IS NULL ORDER BY title LIMIT :limit OFFSET :offset`;
+        const countQuery = `SELECT COUNT(*) AS total FROM books WHERE title LIKE :searchTerm AND dateBorrowed IS NULL`;
+
         const values = {
-            searchTerm : `%${searchTerm}%`
-        }
+            searchTerm : `%${searchTerm}%`,
+            limit,
+            offset
+        };
         
         try{
-            const [results] = await sequelize.query(query, {
-                replacements : values
+            const results = await sequelize.query(query, {
+                replacements : values,
+                type : QueryTypes.SELECT
             });
 
-            return results;
+            const totalCountResult = await sequelize.query(countQuery, {
+                replacements : values,
+                type : QueryTypes.SELECT
+            });
+            const total = totalCountResult[0].total;
+
+            return { results, total };
         } catch(error){
             throw new Error("Error in searching by author. Error: ", error);
         }

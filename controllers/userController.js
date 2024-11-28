@@ -2,29 +2,50 @@ const { User } = require('../config/dbConfig');
 
 class UserController {
     static listAllUsers = async(req, res) => {
+        const page = parseInt(req.query.page);
+        const limit = parseInt(req.query.limit);
+
         try{
-            const users = await User.usersList_all();
+            const {users, total} = await User.usersList_all(page, limit);
 
             if(users.length === 0){
                 return res.status(404).send("No users found");
             }
 
-            res.status(200).send(users);
+            const response = {
+                users,
+                page,
+                total,
+                totalPages : Math.ceil(total / limit)
+            };
+
+            res.status(200).send(response);
 
         } catch(error){
+            console.log(error);
             res.status(500).send(error);
         }
     }
 
     static listUsers = async(req, res) => {
+        const page = parseInt(req.query.page);
+        const limit = parseInt(req.query.limit);
+
         try{
-            const users = await User.usersList_user();
+            const {users, total} = await User.usersList_user(page, limit);
 
             if(users.length === 0){
                 return res.status(404).send("No users found");
             }
 
-            res.status(200).send(users);
+            const response = {
+                users,
+                page,
+                total,
+                totalPages : Math.ceil(total / limit)
+            };
+
+            res.status(200).send(response);
 
         } catch(error){
             res.status(500).send(error);
@@ -32,14 +53,24 @@ class UserController {
     }
 
     static listAdmins = async(req, res) => {
+        const page = parseInt(req.query.page);
+        const limit = parseInt(req.query.limit);
+
         try{
-            const users = await User.usersList_admin();
+            const {users, total} = await User.usersList_admin(page, limit);
 
             if(users.length === 0){
                 return res.status(404).send("No users found");
             }
 
-            res.status(200).send(users);
+            const response = {
+                users,
+                page,
+                total,
+                totalPages : Math.ceil(total / limit)
+            };
+
+            res.status(200).send(response);
 
         } catch(error){
             res.status(500).send(error);

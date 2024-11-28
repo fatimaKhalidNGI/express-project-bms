@@ -22,14 +22,24 @@ class RequestNewBooks {
     }
 
     static getRequestList_admin = async(req, res) => {
+        const page = parseInt(req.query.page);
+        const limit = parseInt(req.query.limit);
+
         try{
-            const requestList = await Request.getAll();
+            const { requestList, total } = await Request.getAll(page, limit);
 
             if(requestList.length === 0){
                 return res.status(404).send("No new requests found");
             }
 
-            res.status(200).send(requestList);
+            const response = {
+                requestList,
+                page,
+                total,
+                totalPages : Math.ceil(total / limit)
+            };
+
+            res.status(200).send(response);
 
         } catch(error){
             console.log(error);
@@ -39,18 +49,28 @@ class RequestNewBooks {
     }
 
     static getOwnRequests = async(req, res) => {
+        const page = parseInt(req.query.page);
+        const limit = parseInt(req.query.limit);
+
         const user_id = req.user_id;
 
         try{
-            const requestList = await Request.getOwn(user_id);
+            const { requestList, total } = await Request.getOwn(user_id, page, limit);
 
             if(requestList.length === 0){
                 return res.status(404).send("No requests have been filed by you");
             }
 
-            res.status(200).send(requestList);
+            const response = {
+                requestList,
+                page,
+                total,
+                totalPages : Math.ceil(total / limit)
+            };
 
+            res.status(200).send(response);
         } catch(error){
+            console.log(error);
             res.status(500).send(error);
         }
     }

@@ -1,3 +1,5 @@
+const { QueryTypes } = require("sequelize");
+
 module.exports = ( sequelize, DataTypes ) => {
     const Request = sequelize.define("Request", {
         request_id : {
@@ -40,24 +42,51 @@ module.exports = ( sequelize, DataTypes ) => {
         }
     }
 
-    Request.getAll = async() => {
-        const query = `SELECT * FROM requests WHERE status = "Pending"`;
+    Request.getAll = async(page, limit) => {
+        const offset = (page - 1) * limit;
+
+        const query = `SELECT * FROM requests ORDER BY book_title LIMIT :limit OFFSET :offset`;
+        const countQuery = `SELECT COUNT(*) as total FROM requests`;
+
+        const values = { limit, offset };
 
         try{
-            const [requestList] = await sequelize.query(query);
-            return requestList; 
+            const requestList = await sequelize.query(query, {
+                replacements : values,
+                type : QueryTypes.SELECT
+            });
+
+            const totalCountResult = await sequelize.query(countQuery, {
+                type : QueryTypes.SELECT
+            });
+            const total = totalCountResult[0].total;
+
+            return { requestList, total };
         } catch(error){
             throw new Error("Error in getting request list: ", error);
         }
     }
 
-    Request.getOwn = async(user_id) => {
-        const query = `SELECT * FROM requests WHERE user_id = :user_id`;
-        const replacements = { user_id };
+    Request.getOwn = async(user_id, page, limit) => {
+        const offset = (page - 1) * limit;
+
+        const query = `SELECT * FROM requests WHERE user_id = :user_id ORDER BY book_title LIMIT :limit OFFSET :offset`;
+        const countQuery = `SELECT COUNT(*) as total FROM requests WHERE user_id = :user_id`;
+        const values = { user_id, limit, offset };
 
         try{
-            const [requestList] = await sequelize.query(query, { replacements });
-            return requestList; 
+            const requestList = await sequelize.query(query, {
+                replacements : values,
+                type : QueryTypes.SELECT
+            });
+
+            const totalCountResult = await sequelize.query(countQuery, {
+                replacements : values,
+                type : QueryTypes.SELECT
+            });
+            const total = totalCountResult[0].total;
+
+            return { requestList, total };
 
         } catch(error){
             throw new Error("Error in getting user's requests list for new books: ", error);
