@@ -1,3 +1,4 @@
+const { parse } = require('dotenv');
 const { Book } = require('../config/dbConfig');
 
 class BookController {
@@ -17,11 +18,22 @@ class BookController {
     }
 
     static listOfBooks = async(req, res) => {
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 10;
+
         try{
-            const booksList = await Book.listBooks();
-            res.status(200).send(booksList);
+            const { booksList, total } = await Book.listBooks(page, limit);
+
+            const response = {
+                booksList,
+                page,
+                total,
+                totalPages : Math.ceil(total / limit)
+            };
+            res.status(200).send(response);
     
         } catch(error){
+            console.log(error);
             res.status(500).send(error);
         }
     }
@@ -69,19 +81,29 @@ class BookController {
     }
 
     static searchByAuthor = async(req, res) => {
+        const page = parseInt(req.query.page);
+        const limit = parseInt(req.query.limit);
+
         const { searchTerm } = req.body;
         if(!searchTerm){
             return res.status(400).send("Data missing!");
         }
 
         try{
-            const results = await Book.searchByAuthor(searchTerm);
+            const {results, total} = await Book.searchByAuthor(searchTerm, page, limit);
 
             if(results.length === 0){
                 return res.status(404).send("Book not found");
             }
 
-            res.status(200).send(results);
+            const response = {
+                results,
+                page,
+                total,
+                totalPages : Math.ceil(total / limit)
+            };
+
+            res.status(200).send(response);
 
         } catch(error){
             console.log(error);
@@ -90,19 +112,29 @@ class BookController {
     }
 
     static searchByTitle = async(req, res) => {
+        const page = parseInt(req.query.page);
+        const limit = parseInt(req.query.limit);
+
         const { searchTerm } = req.body;
         if(!searchTerm){
             return res.status(400).send("Data missing!");
         }
 
         try{
-            const results = await Book.searchByTitle(searchTerm);
+            const {results, total} = await Book.searchByTitle(searchTerm, page, limit);
 
             if(results.length === 0){
                 return res.status(404).send("Book not found");
             }
 
-            res.status(200).send(results);
+            const response = {
+                results,
+                page,
+                total,
+                totalPages : Math.ceil(total / limit)
+            };
+
+            res.status(200).send(response);
 
         } catch(error){
             console.log(error);

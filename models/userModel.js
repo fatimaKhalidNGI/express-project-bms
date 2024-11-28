@@ -1,3 +1,5 @@
+const { QueryTypes } = require("sequelize");
+
 module.exports = ( sequelize, DataTypes ) => {
     const User = sequelize.define('User', {
         user_id : {
@@ -119,36 +121,78 @@ module.exports = ( sequelize, DataTypes ) => {
         }
     }
 
-    User.usersList_all = async() => {
-        const query = `SELECT name, email, role FROM users`;
+    User.usersList_all = async(page, limit) => {
+        const offset = (page - 1) * limit;
+
+        const query = `SELECT name, email, role FROM users ORDER BY name LIMIT :limit OFFSET :offset`;
+        const countQuery = `SELECT COUNT(*) AS total FROM users`;
+
+        const values = { limit, offset };
 
         try{
-            const [ users ] = await sequelize.query(query);
-            return users;
+            const users = await sequelize.query(query, {
+                replacements : values,
+                type : QueryTypes.SELECT
+            });
+
+            const totalCountResult = await sequelize.query(countQuery, {
+                type : QueryTypes.SELECT
+            });
+            const total = totalCountResult[0].total;
+
+            return { users, total };
 
         } catch(error){
             throw new Error("Error in fetching users: ", error);
         }
     }
 
-    User.usersList_user = async() => {
-        const query = `SELECT name, email, role FROM users WHERE role = 'User'`;
+    User.usersList_user = async(page, limit) => {
+        const offset = (page - 1) * limit;
+
+        const query = `SELECT name, email, role FROM users WHERE role = 'User' ORDER BY name LIMIT :limit OFFSET :offset`;
+        const countQuery = `SELECT COUNT(*) AS total FROM users WHERE role = 'User'`;
+
+        const values = { limit, offset };
 
         try{
-            const [ users ] = await sequelize.query(query);
-            return users;
+            const users = await sequelize.query(query, {
+                replacements : values,
+                type : QueryTypes.SELECT
+            });
+
+            const totalCountResult = await sequelize.query(countQuery, {
+                type : QueryTypes.SELECT
+            });
+            const total = totalCountResult[0].total;
+
+            return { users, total };
 
         } catch(error){
             throw new Error("Error in fetching users: ", error);
         }
     }
 
-    User.usersList_admin = async() => {
-        const query = `SELECT name, email, role FROM users WHERE role = 'Admin'`;
+    User.usersList_admin = async(page, limit) => {
+        const offset = (page - 1) * limit;
+
+        const query = `SELECT name, email, role FROM users WHERE role = 'Admin' ORDER BY name LIMIT :limit OFFSET :offset`;
+        const countQuery = `SELECT COUNT(*) AS total FROM users WHERE role = 'Admin'`;
+
+        const values = { limit, offset };
 
         try{
-            const [ users ] = await sequelize.query(query);
-            return users;
+            const users = await sequelize.query(query, {
+                replacements : values,
+                type : QueryTypes.SELECT
+            });
+
+            const totalCountResult = await sequelize.query(countQuery, {
+                type : QueryTypes.SELECT
+            });
+            const total = totalCountResult[0].total;
+
+            return { users, total };
 
         } catch(error){
             throw new Error("Error in fetching users: ", error);
