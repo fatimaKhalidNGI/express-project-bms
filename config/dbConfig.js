@@ -1,11 +1,11 @@
 const { Sequelize, DataTypes } = require('sequelize');
 
 const sequelize = new Sequelize(
-    'express_project_bms',
-    'root',
-    'fatima123',
+    process.env.DB_NAME,
+    process.env.DB_USER,
+    process.env.DB_PASSWORD,
     {
-        host : 'localhost',
+        host : process.env.DB_HOST,
         dialect : 'mysql'
     }
 );
